@@ -22,6 +22,9 @@ module State =
 
     let update msg model =
         match msg with
+        | Top msg' when msg' = Incremented 5 ->
+            let counter, msg = Counter.init()
+            {model with top = counter}, Cmd.none
         | Top msg' -> 
             let counter', cmd = Counter.update msg' model.top
             {model with top = counter'}, Cmd.map Top cmd

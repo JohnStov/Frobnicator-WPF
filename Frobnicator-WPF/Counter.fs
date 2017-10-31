@@ -11,10 +11,12 @@ module Counter =
 
     type Msg =
         | Increment
+        | Incremented of int
 
     let update msg model =
         match msg with
-        | Increment -> { model with value = model.value + 1 }, Cmd.none
+        | Increment -> { model with value = model.value + 1 }, Cmd.ofMsg (Incremented model.value)
+        | Incremented _ -> model, Cmd.none
 
     let viewBinding : ViewBindings<Model, Msg> =
         [ "Value"       |> Binding.oneWay (fun model -> model.value)
