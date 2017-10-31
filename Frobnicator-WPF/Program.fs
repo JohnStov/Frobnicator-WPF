@@ -3,48 +3,31 @@
 open System
 open Elmish
 open Elmish.WPF
-
-module Counter = 
-
-    type Model = { value : int }
-
-    let init () = { value = 0 }
-
-    type Message =
-        | Increment
-
-    let update msg model =
-        match msg with
-        | Increment -> { model with value = model.value + 1 }
-
-    let viewBinding : ViewBindings<Model, Message> =
-        [ "Value"       |> Binding.oneWay (fun model -> model.value)
-          "ButtonClick" |> Binding.cmd (fun model msg -> Increment) ]
-
+open Counter
 
 module State =
-    open Counter
-
     type Model = 
         { top : Counter.Model; bottom : Counter.Model}
 
-    type Message = 
-        | Top of Counter.Message
-        | Bottom of Counter.Message
+    type Msg = 
+        | Top of Counter.Msg
+        | Bottom of Counter.Msg
         | Reset
 
     let init () = 
-        { top = Counter.init () ; bottom = Counter.init ()}
+        let top, topCmd = Counter.init ()
+        let bottom, bottomCmd = Counter.init ()
+        { top = top ; bottom = bottom}, Cmd.batch [Cmd.map Top topCmd
+                                                   Cmd.map Bottom bottomCmd]
 
-    
     let update msg model =
         match msg with
         | Top msg' -> 
-            let counter' = Counter.update msg' model.top
-            {model with top = counter'}
+            let counter', cmd = Counter.update msg' model.top
+            {model with top = counter'}, Cmd.map Top cmd
         | Bottom msg' -> 
-            let counter' = Counter.update msg' model.bottom
-            {model with bottom = counter'}
+            let counter', cmd = Counter.update msg' model.bottom
+            {model with bottom = counter'}, Cmd.map Bottom cmd
         | Reset ->
             init () 
 
@@ -60,7 +43,7 @@ module App =
 
     [<EntryPoint; STAThread>]
     let main argv = 
-        Program.mkSimple init update view
+        Program.mkProgram init update view
         |> Program.withConsoleTrace
         |> Program.runWindow(MainWindow())
     
