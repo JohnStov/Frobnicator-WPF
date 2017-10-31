@@ -14,22 +14,26 @@ module Types =
 module State =
     open Types
 
-    let init () = { value = 0 }
+    let init () = { value = 0 }, Cmd.Empty
 
     let update msg model =
         match msg with
-        | Increment -> { model with value = model.value + 1 }
+        | Increment -> { model with value = model.value + 1 }, Cmd.Empty
 
 module App =
     open State
     open Types
-    open Frobnicator_WPF.Views
+    open Frobnicator.Views
 
-    let view _ _ = []
+    let view model dispatch = 
+        [ "Value"       |> Binding.oneWay (fun model -> model.value)
+          "ButtonClick" |> Binding.cmd (fun model msg -> Increment) ]
+            
 
     [<EntryPoint; STAThread>]
     let main argv = 
-        Program.mkSimple init update view
+        Program.mkProgram init update view
+        |> Program.withConsoleTrace
         |> Program.runWindow(MainWindow())
     
 
